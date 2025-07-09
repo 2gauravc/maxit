@@ -50,6 +50,12 @@ services:
             context: ./agent-chat-ui
         ports:
             - "3000:3000"
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:3000"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 10s
         restart: always
 
 

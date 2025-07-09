@@ -3,6 +3,9 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
+#Instal curl for healthcheck 
+RUN apk add --no-cache curl
+
 # Install git and pnpm
 RUN apk add --no-cache git && npm install -g pnpm
 
