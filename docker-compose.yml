@@ -38,6 +38,12 @@ services:
                 condition: service_healthy
         env_file:
             - ./.env
+        healthcheck:
+            test: ["CMD", "python3", "-c", "import urllib.request; r=urllib.request.urlopen('http://localhost:8000/healthz'); print('✅ PG health OK') if r.status == 200 else (print('❌ Backend health check failed'), exit(1))"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+        restart: always
     
     frontend:
         build:

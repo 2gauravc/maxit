@@ -4,6 +4,9 @@
     "agent": "./agent.py:graph"
   },
   "env": "../.env",
+    "http": {
+    "app": "./server.py:app"
+    },
   "python_version": "3.11",
   "dependencies": [
     "."
