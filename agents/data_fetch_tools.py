@@ -174,21 +174,21 @@ def get_ticker_given_name(company_name: str):
 
 def get_earnings(ticker: str, n: int=1):
     """
-    Retrieve the most recent quarterly earnings data for a given company ticker.
+    Retrieve the most recent quarterly earnings per share (EPS) data for a given company ticker.
     This function uses the Finnhub API to fetch up to `n` earnings records for the specified
-    company, including actual and estimated earnings per share (EPS), the reporting period,
-    and earnings surprises.
+    company, including actual and estimated EPS, the reporting period,
+    and earnings surprises. 
     Args:
         ticker (str): The stock ticker symbol of the company (e.g., "AAPL").
         n (int): The number of most recent earnings records to retrieve.
     Returns:
         list[dict]: A list of dictionaries, each containing:
-            - actual (float): Reported EPS.
-            - estimate (float): Analyst consensus EPS estimate.
+            - actual (float): Reported Earnings per Share (EPS). Usually in USD
+            - estimate (float): Analyst consensus EPS estimate. Usually in USD
             - period (str): Fiscal period end date (YYYY-MM-DD).
             - quarter (int): Fiscal quarter number.
             - year (int): Fiscal year.
-            - surprise (float): Difference between actual and estimated EPS.
+            - surprise (float): Difference between actual and estimated EPS. Usually in USD
             - surprisePercent (float): Surprise as a percentage of the estimate.
             - symbol (str): Ticker symbol.
     Example:
