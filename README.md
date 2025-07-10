@@ -4,8 +4,8 @@
 
 ### Git clone the repo 
 ```
-git clone https://github.com/2gauravc/langgraph-test.git
-cd langgraph-test
+git clone https://github.com/2gauravc/maxit.git
+cd maxit
 ```
 
 ### Create and activate an environment 
