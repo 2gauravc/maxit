@@ -21,12 +21,13 @@ services:
             POSTGRES_PASSWORD: postgres
         volumes:
             - langgraph-data:/var/lib/postgresql/data
+        cpus: 0.7
         healthcheck:
             test: pg_isready -U postgres
             start_period: 10s
             timeout: 1s
             retries: 5
-            interval: 5s
+            interval: 30s
     langgraph-api:
         image: "maxit-image"
         ports:
