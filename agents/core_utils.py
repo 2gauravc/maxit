@@ -11,6 +11,7 @@ from edgar.company_reports import TenK
 from edgar.company_reports import FilingStructure
 from edgar.company_reports import TenK
 from langchain_openai import ChatOpenAI
+import pandas as pd
 
 
 # Define classes 
@@ -182,3 +183,17 @@ def infer_relevant_items(query: str, item_map: dict[str, str]) -> list[str]:
     structured_llm =llm.with_structured_output(InferredItemCodes)
     response = structured_llm.invoke(prompt)
     return response.item_codes
+
+def reshape_financial_df(df: pd.DataFrame) -> pd.DataFrame:
+    # Keep 'label' and 'concept' if present
+    id_vars = ['label']
+    if 'concept' in df.columns:
+        id_vars.append('concept')
+
+    long_df = df.melt(
+        id_vars=id_vars,
+        var_name="fiscal_date",
+        value_name="amount"
+    )
+    sorted_df = long_df.sort_values(by=["label", "fiscal_date"])
+    return sorted_df

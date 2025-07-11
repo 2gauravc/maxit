@@ -1,4 +1,4 @@
-from agents.core_utils import summarize_item_text, infer_relevant_items,get_tenk_items, get_tenk_item_descriptions, ensure_list, get_finnhub_client, convert_unix_to_datetime, set_sec_client
+from agents.core_utils import reshape_financial_df, summarize_item_text, infer_relevant_items,get_tenk_items, get_tenk_item_descriptions, ensure_list, get_finnhub_client, convert_unix_to_datetime, set_sec_client
 from agents.schemas import FilingItemSummary
 from edgar import *
 from edgar.xbrl.stitching import XBRLS
@@ -98,7 +98,11 @@ def get_financial_statement(
     else:
         raise ValueError(f"Unsupported statement type: {statement_type}")
 
-    return stmt.to_dataframe()
+    stmnt = stmt.to_dataframe()
+    stmnt_lf = reshape_financial_df(stmnt)
+    stmnt_lf = stmnt_lf[["label", "fiscal_date", "amount"]]
+    stmnt_lf_md = stmnt_lf.to_markdown(index=False)
+    return stmnt_lf_md
 
 def get_latest_filings(ticker: str, form_type: Optional[str] = None, n: int = 5, as_text: bool = True) -> str:
     """
