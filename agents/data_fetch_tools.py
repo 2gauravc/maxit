@@ -153,8 +153,7 @@ def get_cik (name: str) -> str:
 ## Get ticker given company name 
 def get_ticker_given_name(company_name: str):
     """
-    Searches for ticker symbols that match a given company name using Yahoo Finance's search API.
-    If more than one ticker is returned, get human assistance. 
+    Searches for equity ticker symbols that match a given company name using Yahoo Finance's search API.
     Args:
         company_name (str): The name of the company to search for (e.g., "Apple").
     Returns:
@@ -162,15 +161,40 @@ def get_ticker_given_name(company_name: str):
             - 'name': The company's short name (str)
             - 'symbol': The stock ticker symbol (str)
     """
-
     url = "https://query2.finance.yahoo.com/v1/finance/search"
-    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-    params = {"q": company_name, "quotes_count": 5, "country": "United States"}
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    params = {"q": company_name}
 
-    res = requests.get(url=url, params=params, headers={'User-Agent': user_agent})
-    data = res.json()
-    result = [{"name": q["shortname"], "symbol": q["symbol"]} for q in data["quotes"]]
-    return result
+    try:
+        res = requests.get(url, params=params, headers=headers)
+        res.raise_for_status()  # Raise HTTPError for bad responses (4xx, 5xx)
+
+        if "application/json" in res.headers.get("Content-Type", ""):
+            data = res.json()
+            #print(data)
+            results = [
+                {
+                    "name": q["shortname"],
+                    "symbol": q["symbol"],
+                    "exchange": q["exchange"]
+                }
+                for q in data.get("quotes", []) 
+                if q.get("quoteType") == "EQUITY"
+            ]
+            return {
+            "success": True,
+            "result": results,
+            "error": None
+            }
+
+        else:
+            raise ValueError(f"Unexpected content type: {res.headers.get('Content-Type')}")
+
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "error": f"HTTP error: {e}", "result": None}
+    except ValueError as e:
+        return {"success": False, "error": f"Invalid response: {e}", "result": None}
+    
 
 def get_earnings(ticker: str, n: int=1):
     """
