@@ -74,9 +74,9 @@ def get_financial_statement(
         n (int): Number of recent 10-K filings to retrieve. Defaults to 5.
 
     Returns:
-        pd.DataFrame: Structured DataFrame where rows are financial line items 
-        and columns are reporting periods.
-
+        markdown table: With financial statement data -columns being:
+            label (e.g. Revenue), fiscal date (e.g. 2025-08-31), $ amount (e.g. 1,230,621).
+       
     Raises:
         ValueError: If the statement_type is invalid or if no filings/statements are found.
     """
