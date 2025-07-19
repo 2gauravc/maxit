@@ -1,31 +1,17 @@
 from typing_extensions import List
 from agents.data_fetch_tools import (
     get_stock_price, get_analyst_rating_summary, get_earnings,
-    get_ticker_given_name, get_cik, get_latest_filings,
-    get_financial_statement, get_latest_10K_item_summary
+    get_financial_statement, get_latest_10K_item_summary, 
+    get_yahoo_news, web_search
 )
-from agents.generic_tools import web_search
-from agents.analysis_tools import run_peer_comparison
+from agents.metadata_tools import  get_ticker_given_name, get_cik, get_latest_filings
+from agents.workflows import run_peer_comparison
 from agents.query_ar_index import query_ar_index
-from langchain_community.tools.yahoo_finance_news import YahooFinanceNewsTool
-from langchain_core.tools import Tool
-
 
 # Define the base tool list (functions and tool instances)
 
-yahoo_news_tool = Tool(
-    name="yahoo_finance_news",
-    func=YahooFinanceNewsTool().run,
-    description=(
-        "Fetch recent **stock price-related news** headlines from Yahoo Finance for a given company or stock ticker. "
-        "This tool focuses specifically on stock price movement related updates "
-        "rather than general corporate or financial updates. "
-        "Input should be a company ticker. For example, AAPL for Apple, MSFT for Microsoft. "
-    )
-)
-
 _base_tools = [
-    web_search, yahoo_news_tool, get_stock_price, get_analyst_rating_summary,
+    web_search, get_yahoo_news, get_stock_price, get_analyst_rating_summary,
     get_earnings, get_ticker_given_name, get_cik, get_latest_filings,
     get_financial_statement, run_peer_comparison, get_latest_10K_item_summary #query_ar_index,
 ]

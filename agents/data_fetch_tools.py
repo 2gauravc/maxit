@@ -1,12 +1,46 @@
-from agents.core_utils import reshape_financial_df, summarize_item_text, infer_relevant_items,get_tenk_items, get_tenk_item_descriptions, ensure_list, get_finnhub_client, convert_unix_to_datetime, set_sec_client
-from agents.schemas import FilingItemSummary
+from agents.core_utils import reshape_financial_df, summarize_item_text, infer_relevant_items, ensure_list, get_finnhub_client, convert_unix_to_datetime, set_sec_client
+from agents.schemas import get_tenk_items, get_tenk_item_descriptions
 from edgar import *
 from edgar.xbrl.stitching import XBRLS
-import requests, pandas as pd
+import pandas as pd
 from typing import Literal
+from langchain.tools import Tool
+from langchain_community.tools.yahoo_finance_news import YahooFinanceNewsTool
+from langchain_community.tools.tavily_search import TavilySearchResults
+
+def web_search(query: str, num_results: int = 3) -> str:
+    """
+    Performs a web search using Tavily and returns the top results.
+
+    Args:
+        query (str): The search query.
+        num_results (int): Number of top results to return. Defaults to 3.
+
+    Returns:
+        str: Combined snippets from top search results.
+    """
+    search = TavilySearchResults(max_results=num_results)
+    results = search.run(query)
+    return results
+
+def get_yahoo_news() -> Tool:
+    """
+    Returns a Tool object that fetches recent stock-price-related news 
+    headlines from Yahoo Finance for a given stock ticker.
+    """
+    return Tool(
+        name="yahoo_finance_news",
+        func=YahooFinanceNewsTool().run,
+        description=(
+            "Fetch recent **stock price-related news** headlines from Yahoo Finance for a given company or stock ticker. "
+            "This tool focuses specifically on stock price movement related updates "
+            "rather than general corporate or financial updates. "
+            "Input should be a company ticker. For example, AAPL for Apple, MSFT for Microsoft."
+        )
+    )
 
 
-def get_latest_10K_item_summary(user_query: str, ticker:str, item_codes: Optional[List[str]]=None) -> FilingItemSummary:
+def get_latest_10K_item_summary(user_query: str, ticker:str, item_codes: Optional[List[str]]=None) -> str:
     """
     Generate a summarized view of the latest 10-K filing items for a given company.
 
@@ -56,7 +90,6 @@ def get_latest_10K_item_summary(user_query: str, ticker:str, item_codes: Optiona
     return filing_text.strip()
 
 
-
 def get_financial_statement(
     ticker: str, 
     form_type: Literal["10-K", "10-Q"],
@@ -103,102 +136,6 @@ def get_financial_statement(
     stmnt_lf = stmnt_lf[["label", "fiscal_date", "amount"]]
     stmnt_lf_md = stmnt_lf.to_markdown(index=False)
     return stmnt_lf_md
-
-def get_latest_filings(ticker: str, form_type: Optional[str] = None, n: int = 5, as_text: bool = True) -> str:
-    """
-    Fetches the latest filings for a given ticker using SEC-API.
-    If form_type is specified, filters by that form (e.g., '10-K', '8-K').
-
-    Args:
-        ticker (str): The stock ticker (e.g., "AAPL").
-        form_type (Optional[str]): The form type to filter (e.g., "10-K", "10-Q", "8-K"). If None, returns all types.
-        n (int): Number of filings to retrieve. Defaults to 5.
-        as_text (bool): for string output, use True. Defaults to False which gives a Filing object 
-    
-    Returns:
-        str: A newline-separated string of the latest filings.
-    """
-    set_sec_client()
-
-    c = Company(ticker)
-    
-    if form_type:
-        filings = c.get_filings(form=form_type).latest(n)
-    else:
-        filings = c.get_filings().latest(n)
-    
-    filings = ensure_list(filings)
-    if as_text:
-        return "\n".join(str(f) for f in filings)
-    else: 
-        return filings
-
-# Get the CIK 
-def get_cik (name: str) -> str:
-    """
-    Fetches the CIK (Central Index Key) given the entity name.
-
-    Args:
-        name (str): The name of the entity (e.g., "Micron Technology").
-    
-    Returns:
-        str: The CIK number of the entity (e.g. 'CIK0001730168').
-    """
-    set_sec_client()
-    
-    ticker = get_ticker_given_name(name)[0]['symbol']
-    c = Company(ticker)    
-    cik_raw = c.cik
-    print(f"cik_raw={cik_raw} ({type(cik_raw)})")
-    cik_formatted = f"CIK{int(cik_raw):010d}"
-    return cik_formatted
-
-
-## Get ticker given company name 
-def get_ticker_given_name(company_name: str):
-    """
-    Searches for equity ticker symbols that match a given company name using Yahoo Finance's search API.
-    Args:
-        company_name (str): The name of the company to search for (e.g., "Apple").
-    Returns:
-        List[dict]: A list of dictionaries, each with:
-            - 'name': The company's short name (str)
-            - 'symbol': The stock ticker symbol (str)
-    """
-    url = "https://query2.finance.yahoo.com/v1/finance/search"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    params = {"q": company_name}
-
-    try:
-        res = requests.get(url, params=params, headers=headers)
-        res.raise_for_status()  # Raise HTTPError for bad responses (4xx, 5xx)
-
-        if "application/json" in res.headers.get("Content-Type", ""):
-            data = res.json()
-            #print(data)
-            results = [
-                {
-                    "name": q["shortname"],
-                    "symbol": q["symbol"],
-                    "exchange": q["exchange"]
-                }
-                for q in data.get("quotes", []) 
-                if q.get("quoteType") == "EQUITY"
-            ]
-            return {
-            "success": True,
-            "result": results,
-            "error": None
-            }
-
-        else:
-            raise ValueError(f"Unexpected content type: {res.headers.get('Content-Type')}")
-
-    except requests.exceptions.RequestException as e:
-        return {"success": False, "error": f"HTTP error: {e}", "result": None}
-    except ValueError as e:
-        return {"success": False, "error": f"Invalid response: {e}", "result": None}
-    
 
 def get_earnings(ticker: str, n: int=1):
     """

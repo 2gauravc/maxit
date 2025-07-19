@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from typing import Optional
 from agents.core_utils import infer_relevant_items
-from agents.core_utils import get_tenk_item_descriptions
+from agents.schemas import get_tenk_item_descriptions
 from agents.config import numCandidates, limit
 
 def query_ar_index(query_text:str, ticker:str, filingdate: Optional[str] = None) -> str:

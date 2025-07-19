@@ -61,7 +61,7 @@ Happy chatting !
 Note: Installing on a cloud server (Like Digital Ocean or AWS) or on a cloud absed IDE like Github Codespaces? Refer [INSTALL EXTRAS](./install_extras.md)
 
 
-## Maxit v2 (Coming soon) 
+# Maxit v2 (Coming soon) 
 
 1. Ambient Agent: An Annual report Pipeline agent that runs on demand to:
      - Pull annual reports 
@@ -70,3 +70,7 @@ Note: Installing on a cloud server (Like Digital Ocean or AWS) or on a cloud abs
 2. Agentic RAG: Use AI Agent to query the RAG (as needed) 
 3. Memory: Update client intelligence nuggets in memory based on user interaction (MongoDB)
 4. Memory: Save analysis results to memory (pointers to results) 
+
+# Know more about the internal details of Maxit 
+
+1. [Maxit Tools](./tools.md)

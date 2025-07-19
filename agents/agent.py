@@ -10,7 +10,7 @@ from langgraph.prebuilt import tools_condition, ToolNode
 from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
 from langchain_core.messages.base import BaseMessage
-from agents.core_utils import ClientMemory
+from agents.schemas import ClientMemory
 from tool_registry import tools
 
 # Access the last AI message

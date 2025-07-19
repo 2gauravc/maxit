@@ -8,58 +8,8 @@ from typing import Dict, Any
 import os
 from edgar.core import set_identity
 from edgar.company_reports import TenK
-from edgar.company_reports import FilingStructure
-from edgar.company_reports import TenK
 from langchain_openai import ChatOpenAI
 import pandas as pd
-
-
-# Define classes 
-class PeerInfo(TypedDict):
-    name: str # as per ticker
-    ticker: str
-
-class ClientMemory(TypedDict): 
-    cik: str
-    name: str #as per ticker
-    tickers: str
-    peers: NotRequired[List[PeerInfo]]
-
-class KeyValuePair(BaseModel):
-    key: str = Field(..., description="Name of the metric or fact")
-    value: str = Field(..., description="Value associated with the key")
-
-class BusinessSection(BaseModel):
-    heading: str = Field(..., description="Section heading")
-    description: str = Field(..., description="Description of what the section covers")
-    summary: str | None = Field(None, description="Summary extracted from the filing")
-    key_values: List[KeyValuePair] = Field(default_factory=list)
-
-class FilingItemSummary(BaseModel):
-    title: str = Field(..., description="Title of the filing section, e.g., 'Business' or 'Risk Factors'")
-    description: str = Field(..., description="High-level description of what this item covers")
-    sections: List[BusinessSection]
-
-REQUIRED_KEY_VALUES = {
-    "ITEM 1": [
-        "Number of Employees",
-        "Countries of Operation",
-        "Main Products",
-        "Revenue Segments"
-    ],
-    "ITEM 1A": [
-        "FX Hedging Notional",
-        "Geopolitical Risk",
-        "Interest Rate Risk",
-        "Supply Chain Risk"
-    ],
-    "ITEM 7A": [
-        "FX Hedging Notional",
-        "Interest Rate Swap Notional",
-        "Commodity Exposure",
-        "Sensitivity to Rate Movements"
-    ]
-}
 
 def summarize_item_text(item_code: str, title:str, description: str, item_text: str)-> str: 
     prompt = (
@@ -125,14 +75,6 @@ def convert_unix_to_datetime(timestamp: int) -> str:
     dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
     return dt.strftime('%Y-%m-%d %H:%M:%S UTC')
 
-def get_tenk_items():
-    all_items = []
-    #print(dir(TenK.structure))  
-    all_items = []
-    for part_dict in TenK.structure.structure.values():
-        all_items.extend(part_dict.keys())
-    return all_items
-
 def format_peer_comparison_prompt(peer_data: Dict[str, Any]) -> str:
     prompt = "Compare the following companies across:\n"
     prompt += "- Revenue\n- Cost Structure\n- Profitability\n- Leverage\n- Stock and Valuation\n\n"
@@ -151,24 +93,6 @@ def format_peer_comparison_prompt(peer_data: Dict[str, Any]) -> str:
 
     prompt += "\nPlease provide a concise peer comparison."
     return prompt
-
-def generate_item_descriptions(structure: FilingStructure) -> str:
-    lines = []
-    for part, items in structure.structure.items():
-        for item_code, content in items.items():
-            title = content.get("Title", "No Title")
-            desc = content.get("Description", "").strip()
-            lines.append(f"  - \"{item_code}\": {title} — {desc}")
-    return "\n".join(lines)
-
-def get_tenk_item_descriptions() -> dict[str, str]:
-    descriptions = {}
-    for part_dict in TenK.structure.structure.values():
-        for item_code, meta in part_dict.items():
-            title = meta.get("Title", "")
-            desc = meta.get("Description", "")
-            descriptions[item_code] = f"{title}: {desc}"
-    return descriptions
 
 def infer_relevant_items(query: str, item_map: dict[str, str]) -> list[str]:
     item_list_str = "\n".join([f"{code}: {desc}" for code, desc in item_map.items()])
