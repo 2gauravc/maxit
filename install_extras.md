@@ -9,6 +9,8 @@ This section covers platform-specific steps for setting up and running the app i
 
 ### 🖥️ Ubuntu Linux on AWS
 
+Want to simply run a script: Refer [Ubuntu INIT](./notebooks/ubuntu_init.sh)
+
 #### ✅ Required Utilities
 
 Install essential packages:
@@ -35,6 +37,7 @@ Expose the following ports in your EC2 **Security Group** (SG) settings under **
 | 8123 | TCP      | LangGraph backend |
 
 Set these as **Custom TCP Rules** and allow access from your desired IP range (e.g., `0.0.0.0/0` for open access during dev).
+
 
 ---
 
